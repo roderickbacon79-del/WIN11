@@ -3,10 +3,10 @@ name: Build & Deploy
 on:
   push:
     branches: [master]
-
   workflow_dispatch:
 
 permissions:
+  contents: read
   pages: write
   id-token: write
 
@@ -19,34 +19,24 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
-          cache: npm
+          node-version: 18
 
       - run: |
-          npm ci
-          npm run crowdin upload
-          npm run crowdin download
-          npm run ghbuild
+          npm install
+          npm run build
         env:
-          api_token: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
-          REACT_APP_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-          REACT_APP_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          CI: false
 
-      - uses: actions/upload-pages-artifact@v1
+      - uses: actions/upload-pages-artifact@v3
         with:
-          path: build
-
-      - name: Sleep
-        run: sleep 15s
-        shell: bash    
+          path: ./build
 
       - id: deployment
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@v4
